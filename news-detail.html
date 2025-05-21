@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="hi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>समाचार विवरण - हिन्दी समाचार</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- <header>
+        <div class="container header-container">
+            <h1><a href="index.html" class="header-link">हिन्दी समाचार</a></h1>
+        </div>
+    </header> -->
+    <header>
+        <div class="container header-container">
+            <h1>हिन्दी समाचार </h1>
+            <button class="hamburger" id="hamburger-menu" aria-label="Toggle menu" aria-expanded="false">
+                <span class="hamburger-box">
+                    <span class="hamburger-inner"></span>
+                </span>
+            </button>
+            <nav id="nav-menu">
+                <ul>
+                    <li><a href="#" class="category-link active" data-category="general">मुख्य समाचार</a></li>
+                    <li><a href="#" class="category-link" data-category="world">विश्व</a></li>
+                    <li><a href="#" class="category-link" data-category="business">व्यापार</a></li>
+                    <li><a href="#" class="category-link" data-category="technology">प्रौद्योगिकी</a></li>
+                    <!-- <li><a href="#" class="category-link" data-category="nation">नागरिका</a></li> -->
+                    <li><a href="#" class="category-link" data-category="entertainment">मनोरंजन</a></li>
+                    <li><a href="#" class="category-link" data-category="sports">खेल</a></li>
+                    <li><a href="#" class="category-link" data-category="science">विज्ञान</a></li>
+                    <li><a href="#" class="category-link" data-category="health">स्वास्थ्य</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="main-container article-page-container">
+            <article id="news-article-content" style="display:none;">
+                <h2 id="article-title"></h2>
+                <p class="article-meta">
+                    <span id="article-source"></span> | <span id="article-date"></span>
+                </p>
+                <img id="article-image" src="" alt="Article Image" class="article-full-image">
+                <div id="article-body" class="article-body-content"></div>
+                <!-- <a id="article-original-link" href="#" target="_blank" class="read-more-btn original-link-btn">मूल लेख
+                    पढ़ें</a> -->
+            </article>
+            
+            
+            <div id="article-loading-indicator" class="loading-indicator">
+                <p>लेख लोड हो रहा है...</p>
+            </div>
+            <div id="article-error-message" class="error-message" style="display: none;">
+                <p>लेख लोड करने में असमर्थ।</p>
+            </div>
+        </div>
+        <div class="main-container ">
+        <section id="related-news-section" style="margin-top: 40px;">
+            <h2 style="border-bottom: 2px solid #1a73e8; padding-bottom: 10px; color: #1a202c;">अन्य समाचार</h2>
+            <div class="news-grid" id="related-news-grid">
+                <!-- News cards will be inserted here dynamically -->
+            </div>
+        </section>
+    </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 हिन्दी समाचार</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const articleEl = document.getElementById('news-article-content');
+            const articleTitleEl = document.getElementById('article-title');
+            const articleImageEl = document.getElementById('article-image');
+            const articleSourceEl = document.getElementById('article-source');
+            const articleDateEl = document.getElementById('article-date');
+            const articleBodyEl = document.getElementById('article-body');
+            // const articleOriginalLinkEl = document.getElementById('article-original-link');
+            const loadingIndicator = document.getElementById('article-loading-indicator');
+            const errorMessageEl = document.getElementById('article-error-message');
+
+            const selectedArticle = localStorage.getItem('selectedArticle');
+
+            if (selectedArticle) {
+                try {
+                    const article = JSON.parse(selectedArticle);
+
+                    // Set article title
+                    articleTitleEl.textContent = article.title || "शीर्षक उपलब्ध नहीं है";
+
+                    // Set article image
+                    if (article.image_url) {
+                        articleImageEl.src = article.image_url;
+                        articleImageEl.alt = article.title || "समाचार छवि";
+                        articleImageEl.style.display = 'block';
+                    } else {
+                        articleImageEl.style.display = 'none';
+                    }
+
+                    // Set source and date
+                    articleSourceEl.textContent = `स्रोत: ${article.source_id || article.source_name || 'अज्ञात स्रोत'}`;
+                    articleDateEl.textContent = `प्रकाशित: ${new Date(article.pubDate).toLocaleString('hi-IN', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short'
+                    })}`;
+
+                    // Set article content
+                    let fullContent = article.description 
+                        "इस लेख के लिए विस्तृत सामग्री उपलब्ध नहीं है। कृपया मूल स्रोत पर जाएँ।";
+
+                    // Clean up content if it's from NewsData.io
+                    if (fullContent === "ONLY AVAILABLE IN PAID PLANS") {
+                        fullContent = "इस लेख की पूरी सामग्री केवल भुगतान योजनाओं में उपलब्ध है। कृपया मूल स्रोत पर जाएँ।";
+                    }
+
+                    // Format content with paragraphs
+                    articleBodyEl.innerHTML = fullContent.split('\n')
+                        .filter(para => para.trim().length > 0)
+                        .map(para => `<p>${para}</p>`)
+                        .join('');
+
+                    // // Set original link
+                    // if (article.link || article.url) {
+                    //     articleOriginalLinkEl.href = article.link || article.url;
+                    //     articleOriginalLinkEl.style.display = 'inline-block';
+                    // } else {
+                    //     articleOriginalLinkEl.style.display = 'none';
+                    // }
+
+                    // Show the article content
+                    articleEl.style.display = 'block';
+                    loadingIndicator.style.display = 'none';
+
+                } catch (e) {
+                    console.error("Error parsing article data:", e);
+                    errorMessageEl.textContent = "लेख डेटा को पार्स करने में त्रुटि हुई। कृपया होमपेज पर वापस जाएं।";
+                    errorMessageEl.style.display = 'block';
+                    loadingIndicator.style.display = 'none';
+                }
+            } else {
+                errorMessageEl.textContent = "कोई लेख चयनित नहीं है। कृपया होमपेज पर वापस जाएं।";
+                errorMessageEl.style.display = 'block';
+                loadingIndicator.style.display = 'none';
+                console.error('No article data found in localStorage.');
+            }
+        });
+
+        async function fetchRelatedNews() {
+                const apiKey = 'pub_25c61abc4c3942adaca1e3c8f6aa464b';
+                const apiUrl = `https://newsdata.io/api/1/news?apikey=${apiKey}&language=hi&country=in`;
+
+                try {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    const articles = data.results || [];
+
+                    const relatedGrid = document.getElementById('related-news-grid');
+                    relatedGrid.innerHTML = ''; // Clear existing content
+
+                    // Limit to 4 news articles
+                    articles.slice(0, 6).forEach(article => {
+                        if (!article.title || article.title.toLowerCase() === '[removed]') return;
+
+                        const card = createNewsCard(article);
+                        relatedGrid.appendChild(card);
+                    });
+                } catch (err) {
+                    console.error("Error fetching related news:", err);
+                }
+            }
+
+            function createNewsCard(article) {
+                const defaultPlaceholderImage = 'images/placeholder.jpg';
+                const card = document.createElement('div');
+                card.classList.add('news-card');
+
+                const imageSrc = article.image_url || defaultPlaceholderImage;
+                const title = article.title || 'शीर्षक उपलब्ध नहीं है';
+                const description = article.description ? article.description.substring(0, 100) + '...' : 'विवरण उपलब्ध नहीं है।';
+                const source = article.source_id || 'अज्ञात स्रोत';
+                const date = new Date(article.pubDate).toLocaleString('hi-IN', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short'
+                });
+
+                card.innerHTML = `
+            <img src="${imageSrc}" class="thumbnail" alt="समाचार छवि" onerror="this.onerror=null;this.src='${defaultPlaceholderImage}'">
+            <div class="news-card-content">
+                <h3>${title}</h3>
+                <p class="description">${description}</p>
+                <div class="meta">
+                    <span>स्रोत: ${source}</span><br>
+                    <span>${date}</span>
+                </div>
+                <button class="read-more-btn">पूरा पढ़ें</button>
+            </div>
+        `;
+
+                card.querySelector('.read-more-btn').addEventListener('click', () => {
+                    localStorage.setItem('selectedArticle', JSON.stringify(article));
+                    window.location.href = 'news-detail.html';
+                });
+
+                return card;
+            }
+
+            // Fetch related news on page load
+            fetchRelatedNews();
+    </script>
+</body>
+
+</html>
